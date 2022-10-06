@@ -3,6 +3,7 @@ import os
 ## DIR PARAMS
 ROOT_DIR = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 SP500_R_CSV_PATH = os.path.join(ROOT_DIR, 'data', 'sp500_return.csv')
+EXT_VAR_CSV_PATH = os.path.join(ROOT_DIR, 'data', 'ext_fund_var.csv')
 
 # --------------------------------------------------- #
 # Target's column name.                               #

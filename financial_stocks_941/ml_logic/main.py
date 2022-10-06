@@ -4,7 +4,9 @@ import os
 from financial_stocks_941.ml_logic.split_data import get_folds, get_X_y, train_test_split
 from financial_stocks_941.ml_logic.pseudo_alpha import get_spx_df, get_data_scaled, get_projections, get_alpha, get_bucket
 from financial_stocks_941.ml_logic.params import FOLD_LENGTH, FOLD_STRIDE, PCA_COMPONENTS, SP500_R_CSV_PATH
-from financial_stocks_941.ml_logic.params import TRAIN_TEST_RATIO, INPUT_LENGTH, TARGET_ALPHA
+from financial_stocks_941.ml_logic.params import TRAIN_TEST_RATIO, INPUT_LENGTH, TARGET_ALPHA, EXT_VAR_CSV_PATH
+from financial_stocks_941.ml_logic.params import NB_FUNDAMENTALS
+from financial_stocks_941.ml_logic.external_variables import get_df_alpha
 import datetime
 
 def parser(x):
@@ -37,12 +39,21 @@ def test(sp_500_df):
                                         alpha_train,
                                         alpha_test
                                       )
-    return alpha_train
+    # Get externals and fundamentals
+    (alpha_train_ext_fund, alpha_test_ext_fund) = get_df_alpha (
+                                          ext_fund_var,
+                                          NB_FUNDAMENTALS,
+                                          alpha_train,
+                                          alpha_test
+                                          )
+    return alpha_train_ext_fund
 
 if __name__ == '__main__':
     try:
         sp_500_df = pd.read_csv(SP500_R_CSV_PATH,
                                 header=0, parse_dates=[0], date_parser=parser).iloc[1:,:].set_index("date")
+        ext_fund_var = pd.read_csv(EXT_VAR_CSV_PATH,
+                                   parse_dates = ["date"]).set_index("date")
         print ((test(sp_500_df)).shape)
     except:
         import ipdb, traceback, sys
