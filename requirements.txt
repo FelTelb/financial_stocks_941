@@ -8,6 +8,7 @@ wheel>=0.29
 numpy
 pandas
 scikit-learn
+tensorflow-macos==2.8.0
 
 # tests/linter
 black

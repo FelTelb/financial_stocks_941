@@ -1,12 +1,11 @@
-import numpy as np
 import pandas as pd
-import os
 from financial_stocks_941.ml_logic.split_data import get_folds, get_X_y, train_test_split
 from financial_stocks_941.ml_logic.pseudo_alpha import get_spx_df, get_data_scaled, get_projections, get_alpha, get_bucket
 from financial_stocks_941.ml_logic.params import FOLD_LENGTH, FOLD_STRIDE, PCA_COMPONENTS, SP500_R_CSV_PATH
 from financial_stocks_941.ml_logic.params import TRAIN_TEST_RATIO, INPUT_LENGTH, TARGET_ALPHA, EXT_VAR_CSV_PATH
-from financial_stocks_941.ml_logic.params import NB_FUNDAMENTALS
+from financial_stocks_941.ml_logic.params import NB_FUNDAMENTALS, OUTPUT_LENGTH, SAMPLE_STRIDE
 from financial_stocks_941.ml_logic.external_variables import get_df_alpha
+from financial_stocks_941.ml_logic.model import init_model, fit_model
 import datetime
 
 def parser(x):
@@ -46,7 +45,18 @@ def test(sp_500_df):
                                           alpha_train,
                                           alpha_test
                                           )
-    return alpha_train_ext_fund
+    # Get train and test samples
+    X_train, y_train = get_X_y(alpha_train_ext_fund, INPUT_LENGTH, OUTPUT_LENGTH, SAMPLE_STRIDE)
+    X_test, y_test = get_X_y(alpha_test_ext_fund, INPUT_LENGTH, OUTPUT_LENGTH, SAMPLE_STRIDE)
+
+    # 2 - Modelling
+    # =========================================
+    ##### LSTM Model
+    model = init_model(X_train, y_train)
+    model, history = fit_model(model, X_train, y_train)
+    res = model.evaluate(X_test, y_test)[1]
+
+    return res
 
 if __name__ == '__main__':
     try:
@@ -54,7 +64,7 @@ if __name__ == '__main__':
                                 header=0, parse_dates=[0], date_parser=parser).iloc[1:,:].set_index("date")
         ext_fund_var = pd.read_csv(EXT_VAR_CSV_PATH,
                                    parse_dates = ["date"]).set_index("date")
-        print ((test(sp_500_df)).shape)
+        print (test(sp_500_df))
     except:
         import ipdb, traceback, sys
         extype, value, tb = sys.exc_info()
