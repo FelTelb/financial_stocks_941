@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import os
 from financial_stocks_941.ml_logic.split_data import get_folds, get_X_y, train_test_split
-from financial_stocks_941.ml_logic.pseudo_alpha import get_spx_df, get_data_scaled, get_projections, get_alpha
+from financial_stocks_941.ml_logic.pseudo_alpha import get_spx_df, get_data_scaled, get_projections, get_alpha, get_bucket
 from financial_stocks_941.ml_logic.params import FOLD_LENGTH, FOLD_STRIDE, PCA_COMPONENTS, SP500_R_CSV_PATH
 from financial_stocks_941.ml_logic.params import TRAIN_TEST_RATIO, INPUT_LENGTH, TARGET_ALPHA
 import datetime
@@ -30,6 +30,12 @@ def test(sp_500_df):
                                       ftest_500_scaled,
                                       projections_train,
                                       projections_test
+                                      )
+    # Get buckets
+    (alpha_train, alpha_test) = get_bucket (
+                                        TARGET_ALPHA,
+                                        alpha_train,
+                                        alpha_test
                                       )
     return alpha_train
 

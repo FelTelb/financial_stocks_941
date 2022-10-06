@@ -114,3 +114,41 @@ def get_alpha (target_alpha: str,
     alpha_test = alpha_test.set_axis(alpha_names, axis = 1).copy() # Rename alpha_test
 
     return (alpha_train[[target_alpha]], alpha_test[[target_alpha]])
+
+#Get buckets or target variable
+def get_bucket (target_alpha: str,
+                alpha_train: pd.DataFrame,
+                alpha_test: pd.DataFrame
+               ) -> Tuple[pd.DataFrame]:
+
+    '''
+      Returns 2 DataFrames with the classification buckets :
+      (alpha_train -> alpha_train + classification buckets,
+      alpha_test -> alpha_test + classification buckets,
+      from which one can feed the LSTM
+      '''
+
+    bin_labels = ["Q1", "Q2", "Q3", "Q4"]
+
+    # pd qcut to classify the train data in quartiles
+    alpha_train["trade_flag"]= pd.DataFrame(pd.qcut(alpha_train[target_alpha],
+                                                    q = 4,
+                                                    labels = bin_labels))
+    series, bins = pd.qcut(alpha_train[target_alpha], q = 4, retbins = True) # to recover the bins
+
+    # pd cut to classify the test data in the same train quartiles
+    alpha_test["trade_flag"]= pd.DataFrame(pd.cut(alpha_test[target_alpha],
+                                                  bins = bins,
+                                                  labels = bin_labels,
+                                                  include_lowest=True))
+
+    # apply transformation to keep only two classes
+      # 1 == "heavy" variations
+      # 0 == "neutral" variations
+    alpha_train["trade_flag"] = alpha_train["trade_flag"]\
+                                .apply(lambda x: 1 if (x == "Q1" or x == "Q4") else 0)
+
+    alpha_test["trade_flag"] = alpha_test["trade_flag"]\
+                                .apply(lambda x: 1 if (x == "Q1" or x == "Q4") else 0)
+
+    return (alpha_train, alpha_test)
